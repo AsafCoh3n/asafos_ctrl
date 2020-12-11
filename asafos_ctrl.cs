@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Threading;
 using System.Net;
-
+using System.Timers;
 class Program
 {
     static void Main(string[] args)
@@ -15,6 +15,7 @@ class Program
         IPAddress ip = IPAddress.Parse("10.0.0.11");
         int port = 80;
         TcpClient client = new TcpClient();
+        Console.WriteLine("trying to connect to asafos");
         client.Connect(ip, port);
         Console.WriteLine("asafos connected!!");
         NetworkStream ns = client.GetStream();
@@ -38,15 +39,29 @@ class Program
         Console.ReadKey();
     }
 
+    static int pac_num;
 
     static void ReceiveData(TcpClient client) {
         NetworkStream ns = client.GetStream();
         byte[] receivedBytes = new byte[1024];
         int byte_count;
 
+        DateTime endRunAt = DateTime.Now.AddSeconds(1);
+
         while ((byte_count = ns.Read(receivedBytes, 0, receivedBytes.Length)) > 0)
         {
-            Console.WriteLine(Encoding.ASCII.GetString(receivedBytes, 0, byte_count));
+
+            if (DateTime.Now > endRunAt)
+            {
+                char[] input = Encoding.ASCII.GetChars(receivedBytes, 0, byte_count);
+                var onlyLetters = new String(input.SkipWhile(p => !Char.IsLetter(p) && !Char.IsDigit(p)).ToArray());
+                Console.WriteLine("$ "+ onlyLetters + " $");
+               // Console.WriteLine(input);
+
+                endRunAt = DateTime.Now.AddSeconds(1);
+            }
+
+
         }
     }
 }
